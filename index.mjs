@@ -33,7 +33,7 @@ export const handler = async (event) => {
     };
 
     // Send the email via SES
-    await ses.sendEmail(params).promise();
+    await ses.send(params);
 
     console.log(`Email forwarded successfully! Message ID: ${messageId}`);
     return {
