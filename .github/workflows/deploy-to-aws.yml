@@ -18,6 +18,7 @@ jobs:
   # This workflow contains a single job called "build"
   build:
     # The type of runner that the job will run on
+    name: Build and Deploy
     runs-on: ubuntu-latest
 
     # Steps represent a sequence of tasks that will be executed as part of the job
@@ -45,5 +46,7 @@ jobs:
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_REGION: ${{ secrets.AWS_REGION }}
-        run: aws lambda update-function-code --function-name email-forwarder --zip-file fileb://lambda-deployment.zip
+          AWS_REGION: "us-east-1"
+        run: aws lambda update-function-code \
+          --function-name email-forwarder \
+          --zip-file fileb://lambda-deployment.zip
