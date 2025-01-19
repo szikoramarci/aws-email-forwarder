@@ -1,0 +1,23 @@
+# Node.js modulok
+node_modules/
+
+# Lokális környezeti változók
+.env
+
+# Debug és log fájlok
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# AWS Lambda ZIP csomagok
+*.zip
+
+# Helyi konfigurációs fájlok
+.DS_Store
+.idea/
+.vscode/
+*.iml
+
+# Operációs rendszer által generált fájlok
+Thumbs.db
+Desktop.ini
