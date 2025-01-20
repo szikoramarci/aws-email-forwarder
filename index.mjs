@@ -1,20 +1,38 @@
 "use strict";
 
 import { SESClient, SendEmailCommand } from "@aws-sdk/client-ses";
+import { S3Client, GetObjectCommand } from "@aws-sdk/client-s3";
+import { simpleParser } from "mailparser";
 
 // Initialize AWS SES
 const ses = new SESClient({ region: "us-east-1" });
+const s3 = new S3Client();
 
 export const handler = async (event) => {
   try {
     // Extract email addresses from the event payload
-    const senderEmail = event.senderEmail || "default@sender.com";
-    const recipientEmail = event.recipientEmail || "default@recipient.com";
+    const senderEmail = event.senderEmail || "hello@marcell.solutions";
+    const recipientEmail = event.recipientEmail || "simabeats@gmail.com";
 
     // Extract SES event details
     const record = event.Records[0].ses;
     const messageId = record.mail.messageId;
     const subject = record.mail.commonHeaders.subject || "No Subject";
+
+    const bucketName = "marcell-solutions-emails"; // S3 bucket for emails
+    const objectKey = `${messageId}`; // email object key
+    const input = { // GetObjectRequest
+      Bucket: bucketName, 
+      Key: objectKey,
+    }
+    const command = new GetObjectCommand(input);
+    const emailContent = await s3.send(command);
+    
+    const parsedEmail = await simpleParser(emailContent);
+    console.log("Tárgy:", parsedEmail.subject);
+    console.log("Szöveges tartalom:", parsedEmail.text);
+    console.log("HTML tartalom:", parsedEmail.html);
+    console.log("Mellékletek:", parsedEmail.attachments);
 
     // Define email forwarding parameters
     const params = {
@@ -28,15 +46,14 @@ export const handler = async (event) => {
         },
         Body: {
           Text: {
-            Data: `You've received an email forwarded from SES.\n\nOriginal Message ID: ${messageId}\n\n`,
+            Data: emailContent,
           },
         },
       },
     };
-    console.log(params);
+
     // Send the email via SES
     const sendingResult = await ses.send(new SendEmailCommand(params));
-    console.log(sendingResult);
 
     return {
       statusCode: 200,
