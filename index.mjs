@@ -6,7 +6,7 @@ import { simpleParser } from "mailparser";
 
 // Initialize AWS SES
 const ses = new SESClient({ region: "us-east-1" });
-const s3 = new S3Client();
+const s3 = new S3Client({});
 
 export const handler = async (event) => {
   try {
@@ -26,13 +26,9 @@ export const handler = async (event) => {
       Key: objectKey,
     }
     const command = new GetObjectCommand(input);
-    const emailContent = await s3.send(command);
-    
-    const parsedEmail = await simpleParser(emailContent);
-    console.log("Tárgy:", parsedEmail.subject);
-    console.log("Szöveges tartalom:", parsedEmail.text);
-    console.log("HTML tartalom:", parsedEmail.html);
-    console.log("Mellékletek:", parsedEmail.attachments);
+    const emailContent = await s3.send(command);    
+    const rawEmailContent = await emailContent.Body.transformToString()
+    const parsedEmail = await simpleParser(rawEmailContent);
 
     // Define email forwarding parameters
     const params = {
@@ -45,8 +41,8 @@ export const handler = async (event) => {
           Data: `Fwd: ${subject}`, // Forwarded email subject
         },
         Body: {
-          Text: {
-            Data: emailContent,
+          Html: {
+            Data: parsedEmail.html
           },
         },
       },
